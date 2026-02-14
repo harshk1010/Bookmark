@@ -6,10 +6,10 @@ import { createClient } from "@/lib/supabase-browser"
 export default function Login() {
   const supabase = createClient()
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000" || "https://bookmark-ten-pi.vercel.app/"
+  // const siteUrl =
+  //   process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000" || "https://bookmark-ten-pi.vercel.app/"
 
-  const redirectTo = `${siteUrl}/auth/callback`
+   const redirectTo = "https://bookmark-ten-pi.vercel.app/auth/callback"
 
   const signIn = async () => {
     await supabase.auth.signInWithOAuth({
