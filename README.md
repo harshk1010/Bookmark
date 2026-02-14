@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Smart Bookmark
 
-## Getting Started
+A bookmark manager built using **Next.js**, **Supabase**, and **Tailwind CSS**, deployed on **Vercel**.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Live Demo
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+🔗 **Live URL:** https://bookmark-ten-pi.vercel.app/  
+🔗 **GitHub Repo:** https://github.com/harshk1010/Bookmark
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> You can log in using your own Google account to test functionality.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+##  Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Frontend:** Next.js (App Router)
+- **Authentication:** Supabase Google OAuth
+- **Database:** Supabase PostgreSQL
+- **Realtime:** Supabase Realtime (Postgres Changes)
+- **Styling:** Tailwind CSS
+- **Deployment:** Vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+##  Features Implemented
 
-## Deploy on Vercel
+### Google OAuth Authentication
+- Users can sign in using **Google only**
+- No email/password authentication
+- Secure session handling using Supabase
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Add Bookmark
+- Logged-in users can add:
+  - Bookmark Title
+  - Bookmark URL
+- Stored securely in Supabase database
+
+---
+
+### Private Bookmarks (Row Level Security)
+- Each bookmark is associated with a `user_id`
+- Supabase **Row Level Security (RLS)** ensures:
+  - User A cannot see User B’s bookmarks
+  - User B cannot delete User A’s bookmarks
+- Privacy is enforced at the **database level**
+
+---
+
+### Real-Time Updates
+- If two tabs are open:
+  - Adding a bookmark in one tab updates the other instantly
+- Implemented using Supabase Realtime (`postgres_changes`)
+
+---
+
+### Delete Bookmark
+- Users can delete their own bookmarks
+- Protected using RLS policies
+
+---
+
+### Production Deployment
+- App deployed on Vercel
+- Environment variables configured securely
+- Supabase production URL configuration updated
+
+---
+
+## ⚠ Problems Faced & How I Solved Them
+
+###  1. OAuth Redirect Loop in Production
+**Problem:** After deploying, login redirected back to login page.
+
+**Cause:** Session cookies were not properly handled in production.
+
+**Solution:**
+- Corrected `/auth/callback` route to properly exchange code and attach cookies to response.
+- Ensured Supabase Site URL matched Vercel domain.
+- Verified cookies using browser DevTools.
+
+---
+
+###  2. Middleware Breaking Session
+**Problem:** Middleware was causing redirect even when session existed.
+
+**Solution:**
+- Simplified auth handling.
+- Ensured correct cookie propagation in production.
+
+---
+
+###  3. Row Level Security Blocking Inserts
+**Problem:** Data was not being inserted into database.
+
+**Cause:** Incorrect RLS policy (`using` instead of `with check` for insert).
+
+**Solution:**
+```sql
+create policy "Users can insert their bookmarks"
+on bookmarks
+for insert
+with check (auth.uid() = user_id);
+
